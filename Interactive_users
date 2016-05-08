@@ -1,0 +1,118 @@
+:debut  	
+@echo off & cls		
+echo.	
+echo     1 : Ajout de nouvel utilisateur
+echo     2 : Affectation de mot de passe un utilisateur
+echo     3 : Changement du mot de passe utilisateur
+echo     4 : Suppression utilisateur 
+echo     5 : Informations sur un utilisateur
+echo     q : Quitter
+echo.
+echo ------------------------------------------------------
+echo.
+
+for /f "tokens=* USEBACKQ" %%i in ('---Options: [m - menu principal]  [q - quitter le programme]') DO (
+	set opt=%%i) 
+set choix=	
+for /f %%A in ( '"prompt $H &echo on &for %%B in (1) do rem" ') do set BS=%%A
+set /P choix=%BS% Votre choix:
+echo.
+echo "%choix%" | findstr "[12345qQ]" >nul 2>nul             	
+if %ERRORLEVEL% NEQ 0 echo Verifiez les options disponibles & pause & goto :debut 
+if %choix%==q goto :EOF 
+goto opt%choix%
+:opt1
+cls	
+	set nom=
+	echo. & echo %opt% & echo.
+	set /P nom=%BS% Ecrivez le nom du nouvel utilisateur :
+	goto :verify
+:action1
+	net user %nom% >nul 2>nul.
+		if %ERRORLEVEL% NEQ 0 (
+		net user %nom% /add >nul 2>nul.
+		echo. & echo %BS% Creation du nouvel utilisateur %nom%. &echo.
+		) ELSE goto :error
+	pause
+	goto :debut
+:opt2
+	cls	
+	set nom=
+	set mot=  
+	echo. & echo %opt% & echo.
+	set /P nom=%BS% Ecrivez le nom d'utilisateur pour affecter un mot de passe : 
+	goto :verify
+:action2
+	net user "%nom%" >nul 2>nul.
+			if %ERRORLEVEL% EQU 0 (
+				net user %nom% * 
+				pause
+				goto :debut
+				)ELSE goto :error 
+	pause
+	goto :debut
+:opt3
+cls	
+	set nom=
+	set mot=
+	echo. & echo %opt% & echo.
+	set /P nom=%BS% Ecrivez le nom d'utilisateur pour changer son mot de passe: 
+	goto :verify
+:action3
+	net user | findstr /i "%nom%" >nul 2>nul.
+			if %ERRORLEVEL% EQU 0 (
+				net user %nom% * 
+				echo. & echo %BS% Modification du mot de passe de l'utilisateur %nom%. echo.
+				pause
+				goto :debut
+				) ELSE goto :error 
+	pause
+	goto :debut
+:opt4
+cls	
+	set nom=
+	set mot=
+	echo.
+	echo. & echo %opt% & echo.
+	set /P nom= %BS% Ecrivez le nom utilisateur pour le supprimer : 
+	goto :verify
+:action4
+	net user %nom% >nul 2>nul.
+			if %ERRORLEVEL% EQU 0 (
+				net user %nom% /delete >nul 2>nul
+				echo. &echo %BS% Supression de l'utilisateur %nom%. &echo. 
+				pause
+				goto :debut
+				) ELSE goto :error 
+	pause
+	goto :debut	
+:opt5 
+cls	
+	set nom=
+	set mot= 
+	echo. & echo %opt% & echo.
+	set /P nom=%BS% Ecrivez le nom utilisateur pour voir ses informations : 
+	goto :verify
+:action5
+	net user %nom% >nul 2>nul.
+			if %ERRORLEVEL% EQU 0 (
+				echo.
+				net user %nom%
+				pause
+				goto :debut
+				) ELSE goto :error 
+	pause
+	goto :debut				
+
+:verify
+if "%nom%"=="" echo %BS%---Vous devez ecrire un nom d'utilisateur & pause & goto :opt%choix%
+if "%nom%"=="q" echo %BS%---Vous quittez le programme. & goto :EOF
+if "%nom%"=="m" goto :debut
+goto :action%choix%
+
+:error
+echo.
+echo %BS% Il y a un probleme avec le nom %nom%. Ecrivez un nom different.  
+pause
+goto :opt%choix%
+
